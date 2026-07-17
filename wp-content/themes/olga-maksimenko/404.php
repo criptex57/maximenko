@@ -1,0 +1,1 @@
+<?php get_header(); ?><section class="error-page section"><span>404</span><p class="eyebrow"><?php echo esc_html( olga_t( 'not_found' ) ); ?></p><h1><?php echo esc_html( olga_t( 'not_found_title' ) ); ?></h1><a class="button" href="<?php echo esc_url( olga_url( home_url( '/' ) ) ); ?>"><?php echo esc_html( olga_t( 'back_home' ) ); ?></a></section><?php get_footer(); ?>

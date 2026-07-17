@@ -1,0 +1,7 @@
+.env
+.DS_Store
+node_modules/
+wp-content/themes/olga-maksimenko/node_modules/
+wp-content/uploads/
+mysql-data/
+

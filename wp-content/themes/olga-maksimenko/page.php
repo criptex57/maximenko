@@ -1,0 +1,1 @@
+<?php get_header(); the_post(); ?><article class="content-page section"><?php olga_breadcrumbs(); ?><h1><?php echo esc_html( olga_post_value( get_the_ID(), 'title' ) ); ?></h1><div class="prose"><?php echo wp_kses_post( apply_filters( 'the_content', olga_post_value( get_the_ID(), 'content' ) ) ); ?></div></article><?php get_footer(); ?>

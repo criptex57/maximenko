@@ -1,0 +1,10 @@
+<?php get_header(); the_post(); $meta = olga_project_meta(); ?>
+<article class="single-project">
+	<header class="project-hero"><?php the_post_thumbnail( 'full', array( 'class' => 'project-hero__image' ) ); ?><div class="project-hero__shade"></div><div class="project-hero__content"><?php olga_breadcrumbs(); ?><p class="eyebrow"><?php echo esc_html( olga_t( 'interior_project' ) ); ?></p><h1><?php echo esc_html( olga_post_value( get_the_ID(), 'title' ) ); ?></h1><div class="project-meta"><?php foreach ( $meta as $label => $value ) : ?><span><small><?php echo esc_html( $label ); ?></small><?php echo esc_html( $value ); ?></span><?php endforeach; ?></div></div></header>
+	<section class="project-story section"><div><p class="eyebrow"><?php echo esc_html( olga_t( 'brief' ) ); ?></p><h2><?php echo esc_html( olga_post_value( get_the_ID(), 'task' ) ?: olga_t( 'brief_default' ) ); ?></h2></div><div class="lead"><?php echo wp_kses_post( apply_filters( 'the_content', olga_post_value( get_the_ID(), 'content' ) ) ); ?></div></section>
+	<section class="project-feature section"><?php the_post_thumbnail( 'full', array( 'loading' => 'lazy' ) ); ?></section>
+	<section class="project-solution section"><p class="eyebrow"><?php echo esc_html( olga_t( 'key_solutions' ) ); ?></p><h2><?php echo nl2br( esc_html( olga_post_value( get_the_ID(), 'solution' ) ) ); ?></h2></section>
+	<?php $gallery_ids = array_filter( array_map( 'absint', explode( ',', get_post_meta( get_the_ID(), '_olga_gallery', true ) ) ) ); if ( $gallery_ids ) : ?><section class="project-gallery section"><?php foreach ( $gallery_ids as $image_id ) { echo wp_get_attachment_image( $image_id, 'full', false, array( 'loading' => 'lazy' ) ); } ?></section><?php endif; ?>
+	<nav class="next-project section"><?php $next = get_next_post(); if ( $next ) : ?><p class="eyebrow"><?php echo esc_html( olga_t( 'next_project' ) ); ?></p><a href="<?php echo esc_url( olga_url( get_permalink( $next ) ) ); ?>"><?php echo esc_html( olga_post_value( $next->ID, 'title' ) ); ?> <span>↗</span></a><?php endif; ?></nav>
+</article>
+<?php get_footer(); ?>

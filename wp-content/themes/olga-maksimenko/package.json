@@ -1,0 +1,19 @@
+{
+  "name": "olga-maksimenko-theme",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "gsap": "^3.13.0",
+    "lenis": "^1.3.8",
+    "swiper": "^14.0.5"
+  },
+  "devDependencies": {
+    "vite": "^7.0.4"
+  }
+}
