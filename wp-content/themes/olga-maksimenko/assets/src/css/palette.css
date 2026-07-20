@@ -967,3 +967,71 @@ html:has(body.modal-open)::-webkit-scrollbar-track {
   }
   .form-success-toast__mark { width: 42px; height: 42px; }
 }
+
+/* Readability pass: keep editorial microcopy elegant without making it microscopic. */
+.brand__role { font-size: clamp(9px, .55vw, 10px); }
+.desktop-nav a { font-size: clamp(10px, .64vw, 12px); }
+.language-switcher a { font-size: clamp(9px, .55vw, 10px); }
+.button--small { font-size: clamp(10px, .58vw, 11px); }
+.eyebrow { font-size: 12px; }
+.hero-refined__cta { font-size: 12px; }
+.hero-cinematic__architecture span,
+.hero-cinematic__glass,
+.orbit-link > span,
+.hero-cinematic__scroll { font-size: 10px; }
+.collage-photo figcaption { font-size: 10px; }
+.manifesto__stats .manifesto-stat > span:last-child { font-size: 11px; }
+.projects-story__progress,
+.story-card__info p,
+.story-card__info span { font-size: 11px; }
+.projects-archive-link { font-size: 11px; }
+.service-row__number { font-size: 11px; }
+.service-row__duration { font-size: 12px; }
+.process-list p { font-size: 11px; }
+.before-after__label,
+.review-card footer span,
+.footer__label,
+.footer__bottom,
+.form-grid label,
+.breadcrumbs,
+.project-meta small,
+.service-page__details span { font-size: 11px; }
+.philosophy__seal span { font-size: 9px; }
+
+@media (max-width: 767px) {
+  .brand__role {
+    font-size: 9px;
+    letter-spacing: .11em;
+  }
+  .language-switcher a {
+    min-width: 27px;
+    font-size: 9px;
+    letter-spacing: .08em;
+  }
+  .hero-refined__cta,
+  .hero-kicker,
+  .manifesto .text-link { font-size: 10px; }
+  .manifesto__circle,
+  .manifesto .manifesto__circle { font-size: 10px; }
+  .manifesto .collage-photo figcaption { font-size: 9px; }
+  .manifesto__stats .manifesto-stat > span:last-child,
+  .manifesto .manifesto__stats .manifesto-stat > span:last-child {
+    font-size: 10px;
+    letter-spacing: .045em;
+  }
+  .story-card__info p,
+  .story-card__info span {
+    font-size: 10px;
+    letter-spacing: .06em;
+  }
+  .service-row__number,
+  .service-row__duration,
+  .process-list p { font-size: 10px; }
+  .service-row p { font-size: 12px; }
+  .footer__lead .eyebrow,
+  .footer__label { font-size: 10px; }
+  .footer__bottom { font-size: 11px; }
+  .contact-modal__panel > .eyebrow,
+  .contact-modal .form-grid label,
+  .form-grid label { font-size: 11px; }
+}
