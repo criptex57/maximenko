@@ -5,6 +5,6 @@
 	<section class="project-feature section"><?php the_post_thumbnail( 'full', array( 'loading' => 'lazy' ) ); ?></section>
 	<section class="project-solution section"><p class="eyebrow"><?php echo esc_html( olga_t( 'key_solutions' ) ); ?></p><h2><?php echo nl2br( esc_html( olga_post_value( get_the_ID(), 'solution' ) ) ); ?></h2></section>
 	<?php $gallery_ids = array_filter( array_map( 'absint', explode( ',', get_post_meta( get_the_ID(), '_olga_gallery', true ) ) ) ); if ( $gallery_ids ) : ?><section class="project-gallery section"><?php foreach ( $gallery_ids as $image_id ) { echo wp_get_attachment_image( $image_id, 'full', false, array( 'loading' => 'lazy' ) ); } ?></section><?php endif; ?>
-	<nav class="next-project section"><?php $next = get_next_post(); if ( $next ) : ?><p class="eyebrow"><?php echo esc_html( olga_t( 'next_project' ) ); ?></p><a href="<?php echo esc_url( olga_url( get_permalink( $next ) ) ); ?>"><?php echo esc_html( olga_post_value( $next->ID, 'title' ) ); ?> <span>↗</span></a><?php endif; ?></nav>
+	<nav class="next-project section"><?php $next = get_next_post(); if ( $next ) : ?><p class="eyebrow"><?php echo esc_html( olga_t( 'next_project' ) ); ?></p><a href="<?php echo esc_url( olga_url( get_permalink( $next ) ) ); ?>"><?php echo esc_html( olga_post_value( $next->ID, 'title' ) ); ?> <span class="ui-arrow" aria-hidden="true"></span></a><?php endif; ?></nav>
 </article>
 <?php get_footer(); ?>

@@ -1,17 +1,23 @@
 <?php
 /** Site header. */
 defined( 'ABSPATH' ) || exit;
+$favicon_path    = get_template_directory() . '/assets/src/images/favicon.svg';
+$favicon_version = file_exists( $favicon_path ) ? filemtime( $favicon_path ) : wp_get_theme()->get( 'Version' );
 ?><!doctype html>
 <html <?php language_attributes(); ?>>
 <head>
 	<meta charset="<?php bloginfo( 'charset' ); ?>">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
-	<meta name="theme-color" content="#100b16">
+	<meta name="theme-color" content="#2e2a27">
+	<link rel="icon" href="<?php echo esc_url( add_query_arg( 'ver', $favicon_version, get_template_directory_uri() . '/assets/src/images/favicon.svg' ) ); ?>" type="image/svg+xml">
+	<link rel="icon" href="<?php echo esc_url( add_query_arg( 'ver', $favicon_version, get_template_directory_uri() . '/assets/src/images/favicon-32.png' ) ); ?>" sizes="32x32" type="image/png">
+	<link rel="apple-touch-icon" href="<?php echo esc_url( add_query_arg( 'ver', $favicon_version, get_template_directory_uri() . '/assets/src/images/apple-touch-icon.png' ) ); ?>" sizes="180x180">
 	<meta name="description" content="<?php echo esc_attr( olga_localized_option( 'seo_description', '', get_bloginfo( 'description' ) ) ); ?>">
 	<meta property="og:title" content="<?php echo esc_attr( wp_get_document_title() ); ?>">
 	<meta property="og:description" content="<?php echo esc_attr( olga_localized_option( 'seo_description', '', get_bloginfo( 'description' ) ) ); ?>">
 	<meta property="og:type" content="website">
 	<meta property="og:url" content="<?php echo esc_url( olga_language_url( olga_current_language() ) ); ?>">
+	<script>(function(d){if(!window.matchMedia('(prefers-reduced-motion: reduce)').matches){d.classList.add('motion-enabled');window.setTimeout(function(){if(!d.classList.contains('motion-app-ready'))d.classList.remove('motion-enabled');},4000);}})(document.documentElement);</script>
 	<?php wp_head(); ?>
 	<script type="application/ld+json"><?php echo wp_json_encode( array( '@context' => 'https://schema.org', '@type' => 'ProfessionalService', 'name' => olga_localized_option( 'name', 'name_default', 'Ольга Максименко' ), 'url' => olga_url( home_url( '/' ) ), 'email' => olga_option( 'email' ), 'telephone' => olga_option( 'phone' ), 'sameAs' => array_filter( array( olga_option( 'instagram' ), olga_option( 'telegram' ) ) ) ), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES ); ?></script>
 </head>

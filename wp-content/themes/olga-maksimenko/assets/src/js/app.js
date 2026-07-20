@@ -7,6 +7,7 @@ import gsap from 'gsap';
 import ScrollTrigger from 'gsap/ScrollTrigger';
 
 gsap.registerPlugin(ScrollTrigger);
+document.documentElement.classList.add('motion-app-ready');
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 const header = document.querySelector('[data-header]');
@@ -93,10 +94,59 @@ const initHorizontalStory = () => {
   const viewport = section?.querySelector('.projects-story__pin');
   const intro = section?.querySelector('.projects-story__intro');
   const progress = section?.querySelector('.projects-story__progress i');
-  if (!section || !track || !viewport || !intro || window.innerWidth <= 767) return;
+  if (!section || !track || !viewport || !intro) return;
 
   horizontalTimeline?.scrollTrigger?.kill();
   horizontalTimeline?.kill();
+
+  if (window.innerWidth <= 767) {
+    section.classList.add('is-mobile-horizontal');
+
+    const getMobileDistance = () => Math.max(1, Math.ceil(track.scrollWidth - (viewport.clientWidth - intro.offsetWidth)));
+    const projectImages = gsap.utils.toArray(track.querySelectorAll('.story-card__image img'));
+
+    gsap.set(track, { '--mobile-track-x': '0px' });
+    gsap.set(projectImages, {
+      '--mobile-image-x': (index) => `${index % 2 ? -10 : 10}px`
+    });
+
+    horizontalTimeline = gsap.timeline({
+      defaults: { ease: 'none' },
+      scrollTrigger: {
+        trigger: section,
+        start: 'top top+=64',
+        end: () => `+=${getMobileDistance()}`,
+        pin: true,
+        pinSpacing: true,
+        scrub: true,
+        anticipatePin: 1,
+        invalidateOnRefresh: true,
+        refreshPriority: 21
+      }
+    });
+
+    horizontalTimeline.to(track, {
+      '--mobile-track-x': () => `${-getMobileDistance()}px`,
+      duration: 1
+    }, 0);
+    horizontalTimeline.to(projectImages, {
+      '--mobile-image-x': (index) => `${index % 2 ? 10 : -10}px`,
+      duration: 1
+    }, 0);
+    horizontalTimeline.to(intro, {
+      autoAlpha: 0,
+      duration: 0.22,
+      ease: 'power1.in'
+    }, 0.035);
+    if (progress) horizontalTimeline.to(progress, { '--progress': 1, duration: 1 }, 0);
+
+    waitForVisualAssets(section).then(async () => {
+      await waitForScrollIdle();
+      smoothScroll.resize();
+      ScrollTrigger.refresh();
+    });
+    return;
+  }
 
   const getDistance = () => Math.max(1, Math.ceil(track.scrollWidth - (viewport.clientWidth - intro.offsetWidth)));
   const projectImages = gsap.utils.toArray(track.querySelectorAll('.story-card__image img'));
@@ -127,6 +177,11 @@ const initHorizontalStory = () => {
     force3D: true,
     duration: 1
   }, 0);
+  horizontalTimeline.to(intro, {
+    autoAlpha: 0,
+    duration: 0.2,
+    ease: 'power1.in'
+  }, 0.03);
   if (progress) horizontalTimeline.to(progress, { '--progress': 1, duration: 1 }, 0);
 
   waitForVisualAssets(section).then(async () => {
@@ -139,9 +194,20 @@ const initHorizontalStory = () => {
 const initMotion = () => {
   if (reducedMotion) return;
 
-  smoothScroll = new Lenis({ duration: 1.2, smoothWheel: true, wheelMultiplier: 0.85, autoRaf: false });
+  const appleNativeMomentum = /Mac/.test(navigator.userAgentData?.platform || navigator.platform || '')
+    && window.matchMedia('(pointer:fine)').matches;
+
+  smoothScroll = new Lenis({
+    duration: 1.2,
+    // Magic Trackpad already supplies a complete inertial event stream.
+    // Let macOS drive wheel momentum instead of easing that stream a second time.
+    smoothWheel: !appleNativeMomentum,
+    wheelMultiplier: 0.85,
+    autoRaf: false
+  });
   smoothScroll.on('scroll', ScrollTrigger.update);
   gsap.ticker.add((time) => smoothScroll.raf(time * 1000));
+  gsap.ticker.lagSmoothing(0);
   ScrollTrigger.config({ ignoreMobileResize: true });
   ScrollTrigger.addEventListener('refreshInit', () => smoothScroll.resize());
 
@@ -183,17 +249,83 @@ const initMotion = () => {
     gsap.fromTo(element, { clipPath: index % 2 ? 'inset(0 100% 0 0)' : 'inset(100% 0 0 0)' }, { clipPath: 'inset(0% 0 0 0)', duration: 1.4, ease: 'expo.inOut', scrollTrigger: { trigger: element, start: 'top 90%' } });
   });
 
-  document.querySelectorAll('.collage-photo').forEach((photo, index) => {
-    gsap.from(photo, {
-      y: 180 * (index + 1),
-      rotate: index % 2 ? 5 : -4,
-      clipPath: 'inset(25% 15%)',
-      ease: 'none',
-      scrollTrigger: { trigger: '[data-manifesto]', start: 'top 70%', end: 'bottom 70%', scrub: 0.8 }
+  const manifesto = document.querySelector('[data-manifesto]');
+  if (manifesto) {
+    const manifestoPhotos = manifesto.querySelectorAll('[data-manifesto-photo]');
+    const manifestoMedia = manifesto.querySelectorAll('.collage-photo__media');
+    const manifestoLines = manifesto.querySelectorAll('.manifesto-line__inner');
+    const manifestoStats = manifesto.querySelectorAll('.manifesto-stat');
+    const isMobileManifesto = window.matchMedia('(max-width: 767px)').matches;
+    const reveal = gsap.timeline({
+      defaults: { ease: 'power4.out' },
+      scrollTrigger: { trigger: manifesto, start: 'top 78%', once: true }
     });
-    gsap.to(photo.querySelector('img'), { yPercent: index % 2 ? -10 : 12, ease: 'none', scrollTrigger: { trigger: photo, start: 'top bottom', end: 'bottom top', scrub: 0.8 } });
-  });
-  gsap.from('.manifesto__stats > div', { yPercent: 100, stagger: 0.15, duration: 1, ease: 'power3.out', scrollTrigger: { trigger: '.manifesto__stats', start: 'top 90%' } });
+
+    reveal
+      .to(manifesto.querySelector('.eyebrow'), { y: 0, autoAlpha: 1, duration: 0.7 })
+      .to(manifestoLines, { y: 0, autoAlpha: 1, stagger: 0.13, duration: 0.95 }, 0.12)
+      .to(manifesto.querySelector('.manifesto__note'), { y: 0, autoAlpha: 1, duration: 0.85 }, 0.56)
+      .to(manifesto.querySelector('.text-link'), { y: 0, autoAlpha: 1, duration: 0.75 }, 0.68)
+      .to(manifestoPhotos, {
+        autoAlpha: 1,
+        clipPath: 'inset(0% 0% 0% 0% round 16px)',
+        stagger: 0.14,
+        duration: 1.15
+      }, 0.34)
+      .to(manifestoMedia, {
+        x: 0,
+        y: 0,
+        scale: 1,
+        stagger: 0.14,
+        duration: 1.15
+      }, 0.34)
+      .to(manifesto.querySelector('.manifesto__circle'), { autoAlpha: 1, duration: 0.9 }, 0.82);
+
+    const parallax = gsap.timeline({
+      scrollTrigger: {
+        trigger: manifesto,
+        start: 'top bottom',
+        end: 'bottom top',
+        scrub: true,
+        invalidateOnRefresh: true
+      }
+    });
+    const intensity = isMobileManifesto ? 0.42 : 1;
+    parallax
+      .to(manifesto.querySelector('.collage-photo--a'), { y: -52 * intensity, ease: 'none' }, 0)
+      .to(manifesto.querySelector('.collage-photo--b'), { x: -30 * intensity, y: -38 * intensity, ease: 'none' }, 0)
+      .to(manifesto.querySelector('.collage-photo--c'), { y: -42 * intensity, ease: 'none' }, 0)
+      .to(manifesto.querySelector('.manifesto__arch'), { rotate: 5, scale: 1.045, transformOrigin: 'center', ease: 'none' }, 0)
+      .to(manifesto.querySelector('.manifesto__circle'), { x: 14 * intensity, y: -22 * intensity, rotate: 3, ease: 'none' }, 0)
+      .to(manifesto.querySelector('.manifesto__sticky h2'), { x: 16 * intensity, ease: 'none' }, 0);
+
+    gsap.to(manifestoStats, {
+      y: 0,
+      autoAlpha: 1,
+      stagger: 0.11,
+      duration: 0.85,
+      ease: 'power3.out',
+      scrollTrigger: { trigger: manifesto.querySelector('.manifesto__stats'), start: 'top 92%', once: true }
+    });
+
+    const counters = manifesto.querySelectorAll('[data-manifesto-counter]');
+    counters.forEach((counter) => { counter.textContent = '0'; });
+    ScrollTrigger.create({
+      trigger: manifesto.querySelector('.manifesto__stats'),
+      start: 'top 88%',
+      once: true,
+      onEnter: () => counters.forEach((counter) => {
+        const target = Number(counter.dataset.manifestoCounter || 0);
+        const state = { value: 0 };
+        gsap.to(state, {
+          value: target,
+          duration: 1.35,
+          ease: 'power2.out',
+          onUpdate: () => { counter.textContent = String(Math.round(state.value)); }
+        });
+      })
+    });
+  }
 
   initHorizontalStory();
 
@@ -349,6 +481,18 @@ document.addEventListener('keydown', (event) => {
 });
 
 const form = document.querySelector('[data-contact-form]');
+const successToast = document.querySelector('[data-success-toast]');
+const successToastMessage = successToast?.querySelector('[data-success-toast-message]');
+let successToastTimer = null;
+const setSuccessToast = (open, message = '') => {
+  if (!successToast) return;
+  window.clearTimeout(successToastTimer);
+  if (successToastMessage && message) successToastMessage.textContent = message;
+  successToast.setAttribute('aria-hidden', String(!open));
+  if (open) successToastTimer = window.setTimeout(() => setSuccessToast(false), 7000);
+};
+successToast?.querySelector('[data-success-toast-close]')?.addEventListener('click', () => setSuccessToast(false));
+
 form?.addEventListener('submit', async (event) => {
   event.preventDefault();
   const status = form.querySelector('[data-form-status]');
@@ -362,19 +506,28 @@ form?.addEventListener('submit', async (event) => {
 	data.agree = Boolean(form.elements.agree.checked);
 	data.language = window.olgaSite?.language || 'ru';
 	button.disabled = true;
+	button.classList.add('is-loading');
+	button.setAttribute('aria-busy', 'true');
 	status.textContent = window.olgaSite?.messages?.sending || 'Отправляем…';
+	status.classList.add('is-sending');
   try {
     const response = await fetch(window.olgaSite.restUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', 'X-WP-Nonce': window.olgaSite.nonce }, body: JSON.stringify(data) });
     const result = await response.json();
     if (!response.ok) throw new Error(result.message || 'Ошибка отправки.');
-    status.textContent = result.message;
-    status.classList.add('is-success');
     form.reset();
+    status.textContent = '';
+    status.classList.remove('is-success');
+    setModal(false);
+    window.setTimeout(() => setSuccessToast(true, result.message), 380);
   } catch (error) {
+	status.classList.remove('is-sending');
     status.textContent = error.message;
     status.classList.remove('is-success');
   } finally {
     button.disabled = false;
+	button.classList.remove('is-loading');
+	button.removeAttribute('aria-busy');
+	status.classList.remove('is-sending');
   }
 });
 

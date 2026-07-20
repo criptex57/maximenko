@@ -16,6 +16,7 @@ $olga_includes = array(
 	'/inc/helpers.php',
 	'/inc/enqueue.php',
 	'/inc/rest-api.php',
+	'/inc/smtp.php',
 	'/inc/security.php',
 );
 

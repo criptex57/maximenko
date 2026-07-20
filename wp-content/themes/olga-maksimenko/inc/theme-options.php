@@ -45,6 +45,97 @@ function olga_add_options_page() {
 }
 add_action( 'admin_menu', 'olga_add_options_page' );
 
+/** Register the ordered selection used by the horizontal projects section. */
+function olga_register_home_projects_setting() {
+	register_setting( 'olga_home_projects_group', 'olga_home_project_ids', 'olga_sanitize_home_project_ids' );
+}
+add_action( 'admin_init', 'olga_register_home_projects_setting' );
+
+function olga_sanitize_home_project_ids( $value ) {
+	$ids   = is_array( $value ) ? $value : explode( ',', (string) $value );
+	$valid = array();
+
+	foreach ( array_unique( array_map( 'absint', $ids ) ) as $project_id ) {
+		if ( $project_id && 'project' === get_post_type( $project_id ) && 'publish' === get_post_status( $project_id ) ) {
+			$valid[] = $project_id;
+		}
+		if ( 6 === count( $valid ) ) {
+			break;
+		}
+	}
+
+	return $valid;
+}
+
+function olga_add_home_projects_page() {
+	add_submenu_page(
+		'edit.php?post_type=project',
+		'Проекты на главной',
+		'Проекты на главной',
+		'manage_options',
+		'olga-home-projects',
+		'olga_home_projects_page'
+	);
+}
+add_action( 'admin_menu', 'olga_add_home_projects_page' );
+
+/** IDs selected in admin; an empty array lets the front page use its legacy fallback. */
+function olga_home_project_ids() {
+	$value = get_option( 'olga_home_project_ids', array() );
+	return olga_sanitize_home_project_ids( $value );
+}
+
+function olga_admin_project_choice( $project, $selected = false ) {
+	$thumbnail = get_the_post_thumbnail_url( $project, 'thumbnail' );
+	?>
+	<li class="olga-project-choice<?php echo $selected ? ' is-selected' : ''; ?>" data-id="<?php echo esc_attr( $project->ID ); ?>">
+		<span class="olga-project-choice__handle dashicons dashicons-move" aria-hidden="true"></span>
+		<?php if ( $thumbnail ) : ?><img src="<?php echo esc_url( $thumbnail ); ?>" alt=""><?php else : ?><span class="olga-project-choice__placeholder dashicons dashicons-format-image"></span><?php endif; ?>
+		<span class="olga-project-choice__title"><?php echo esc_html( get_the_title( $project ) ); ?></span>
+		<button type="button" class="button olga-project-choice__action" data-project-toggle><?php echo $selected ? 'Убрать' : 'Добавить'; ?></button>
+	</li>
+	<?php
+}
+
+function olga_home_projects_page() {
+	if ( ! current_user_can( 'manage_options' ) ) {
+		return;
+	}
+
+	$projects     = get_posts( array( 'post_type' => 'project', 'post_status' => 'publish', 'posts_per_page' => -1, 'orderby' => array( 'menu_order' => 'ASC', 'date' => 'DESC' ) ) );
+	$projects_by_id = array();
+	foreach ( $projects as $project ) {
+		$projects_by_id[ $project->ID ] = $project;
+	}
+	$selected_ids = olga_home_project_ids();
+	?>
+	<div class="wrap olga-home-projects" data-home-projects data-max-projects="6">
+		<h1>Проекты на главной</h1>
+		<p>Выберите до шести проектов для горизонтального блока. Перетаскивайте выбранные проекты, чтобы изменить порядок показа.</p>
+		<form action="options.php" method="post">
+			<?php settings_fields( 'olga_home_projects_group' ); ?>
+			<input type="hidden" name="olga_home_project_ids" value="<?php echo esc_attr( implode( ',', $selected_ids ) ); ?>" data-project-selection>
+			<div class="olga-project-selector">
+				<section>
+					<h2>На главной <span data-selected-count><?php echo esc_html( count( $selected_ids ) ); ?></span>/6</h2>
+					<ul class="olga-project-choice-list is-selected-list" data-selected-projects>
+						<?php foreach ( $selected_ids as $project_id ) : if ( isset( $projects_by_id[ $project_id ] ) ) { olga_admin_project_choice( $projects_by_id[ $project_id ], true ); } endforeach; ?>
+					</ul>
+					<p class="description" data-selected-empty<?php echo $selected_ids ? ' hidden' : ''; ?>>Пока ничего не выбрано — сайт использует первые шесть проектов по текущему порядку.</p>
+				</section>
+				<section>
+					<h2>Все проекты</h2>
+					<ul class="olga-project-choice-list" data-available-projects>
+						<?php foreach ( $projects as $project ) : if ( ! in_array( $project->ID, $selected_ids, true ) ) { olga_admin_project_choice( $project ); } endforeach; ?>
+					</ul>
+				</section>
+			</div>
+			<?php submit_button( 'Сохранить выбор' ); ?>
+		</form>
+	</div>
+	<?php
+}
+
 function olga_sanitize_options( $input ) {
 	$output = array();
 	foreach ( olga_option_fields() as $key => $field ) {
